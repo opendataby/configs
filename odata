@@ -9,9 +9,9 @@ server {
 
 	error_log /var/www/log/odata_error.log;
 
-        #location ~ \..*/.*\.php {
-        #   return 403;
-        #}
+        location ~ \..*/.*\.php {
+           return 403;
+        }
 
         location ~* ^(?:.+\.(?:htaccess|make|txt|log|engine|inc|info|install|module|profile|po|sh|.*sql|theme|tpl(?:\.php)?|xtmpl)|code-style\.pl|/Entries.*|/Repository|/Root|/Tag|/Template)$ {
           return 404;
@@ -22,17 +22,14 @@ server {
 
 	add_header 'Access-Control-Allow-Origin' '*';
 
-      location /blog/ {
-           root /var/www/odata/docroot/blog;
-           location ~ \.php$ {
+        location /blog/ {
            fastcgi_index index.php;
            try_files $uri =404;
            fastcgi_split_path_info ^(.+\.php)(/.+)$;
            fastcgi_pass 127.0.0.1:9000;
            fastcgi_param SCRIPT_FILENAME $document_root/$fastcgi_script_name;
            include fastcgi_params;
-         }
-      }
+        }
 
         # pass the PHP scripts to FastCGI server listening on the php-fpm socket
         location ~ \.php$ {
@@ -84,9 +81,4 @@ server {
 	#	deny all;
 	#}
 
-     location = /blog/index.php {
-          allow all;
-          log_not_found off;
-          access_log off;
-       }
 }
