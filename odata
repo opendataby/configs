@@ -1,13 +1,13 @@
 server {
-	listen   80; ## listen for ipv4; this line is default and implied
-	#listen   [::]:80 default ipv6only=on; ## listen for ipv6
+  listen   80; ## listen for ipv4; this line is default and implied
+  #listen   [::]:80 default ipv6only=on; ## listen for ipv6
 
-	root /var/www/odata/docroot;
-	index index.php index.htm;
+  root /var/www/odata/docroot;
+  index index.php index.htm;
 
   gzip_static on;
 
-	error_log /var/www/log/odata_error.log;
+  error_log /var/www/log/odata_error.log;
 
   location ~ \..*/.*\.php {
      return 403;
@@ -17,9 +17,9 @@ server {
     return 404;
   }
 
-	server_name odata.by www.odata.by;
+  server_name odata.by www.odata.by;
 
-	add_header 'Access-Control-Allow-Origin' '*';
+  add_header 'Access-Control-Allow-Origin' '*';
 
   location /blog/ {
     index index.php;
@@ -74,8 +74,8 @@ server {
   }
 
 
-	#location ~ /\.ht {
-	#	deny all;
-	#}
+  #location ~ /\.ht {
+  # deny all;
+  #}
 
 }
