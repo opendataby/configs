@@ -5,73 +5,75 @@ server {
 	root /var/www/odata/docroot;
 	index index.php index.htm;
 
-        gzip_static on;
+  gzip_static on;
 
-	error_log /var/www/log/odata_error.log debug;
+	error_log /var/www/log/odata_error.log;
 
-        location ~ \..*/.*\.php {
-           return 403;
-        }
+  location ~ \..*/.*\.php {
+     return 403;
+  }
 
-        location ~* ^(?:.+\.(?:htaccess|make|txt|log|engine|inc|info|install|module|profile|po|sh|.*sql|theme|tpl(?:\.php)?|xtmpl)|code-style\.pl|/Entries.*|/Repository|/Root|/Tag|/Template)$ {
-          return 404;
-        }
+  location ~* ^(?:.+\.(?:htaccess|make|txt|log|engine|inc|info|install|module|profile|po|sh|.*sql|theme|tpl(?:\.php)?|xtmpl)|code-style\.pl|/Entries.*|/Repository|/Root|/Tag|/Template)$ {
+    return 404;
+  }
 
-	# Make site accessible from http://localhost/
 	server_name odata.by www.odata.by;
 
 	add_header 'Access-Control-Allow-Origin' '*';
 
-       location /blog/ {
-         try_files $uri $uri/ /blog/index.php?$args;
-        }
+  location /blog/ {
+    index index.php;
+    try_files $uri $uri/ /blog/index.php?$args;
 
-        # pass the PHP scripts to FastCGI server listening on the php-fpm socket
-        location ~ \.php$ {
-           fastcgi_index index.php;
-           try_files $uri =404;
-           fastcgi_split_path_info ^(.+\.php)(/.+)$;
-           fastcgi_pass 127.0.0.1:9000;
-           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-           include fastcgi_params;      
-        }
+    if (!-e $request_filename) {
+      rewrite ^(.+)$ /index.php?q=$1 last;
+    }
+  }
 
-       location @rewrite {
-         rewrite ^/(.*)$ /index.php?q=$1;
-       }
+  # pass the PHP scripts to FastCGI server listening on the php-fpm socket
+  location ~ \.php$ {
+     fastcgi_index index.php;
+     try_files $uri =404;
+     fastcgi_split_path_info ^(.+\.php)(/.+)$;
+     fastcgi_pass 127.0.0.1:9000;
+     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+     include fastcgi_params;
+  }
 
-       location ~ ^/sites/.*/files/styles/ {
-          try_files $uri @rewrite;
-        }
+  location @rewrite {
+    rewrite ^/(.*)$ /index.php?q=$1;
+  }
 
-       location / {
-         # This is cool because no php is touched for static content
-         try_files $uri @rewrite;
-        }
+  location ~ ^/sites/.*/files/styles/ {
+    try_files $uri @rewrite;
+  }
 
-       location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
-         expires max;
-         log_not_found off;
-       }
+  location / {
+    # This is cool because no php is touched for static content
+    try_files $uri @rewrite;
+  }
 
-       location = /favicon.ico {
-         log_not_found off;
-         access_log off;
-       }
+  location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+    expires max;
+    log_not_found off;
+  }
 
-       location = /robots.txt {
-          allow all;
-          log_not_found off;
-          access_log off;
-       }
+  location = /favicon.ico {
+    log_not_found off;
+    access_log off;
+  }
 
-       location ~* \.(txt|log)$ {
-          deny all;
-       }
-	
-        # deny access to .htaccess files, if Apache's document root
-	# concurs with nginx's one
-	#
+  location = /robots.txt {
+    allow all;
+    log_not_found off;
+    access_log off;
+  }
+
+  location ~* \.(txt|log)$ {
+    deny all;
+  }
+
+
 	#location ~ /\.ht {
 	#	deny all;
 	#}
