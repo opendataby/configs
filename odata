@@ -1,16 +1,36 @@
 server {
-  listen   80; ## listen for ipv4; this line is default and implied
-  #listen   [::]:80 default ipv6only=on; ## listen for ipv6
+  listen 80;
 
   root /var/www/odata/docroot;
-  index index.php index.htm;
+  index index.php;
 
   gzip_static on;
 
   error_log /var/www/log/odata_error.log;
 
+  location / {
+
+    if ($arg_p) {
+      rewrite ^ /blog/ redirect;
+    }
+
+    if ($arg_page_id) {
+      rewrite ^ /blog/ redirect;
+    }
+
+    if ($arg_paged) {
+      rewrite ^ /blog/ redirect;
+    }
+
+    if ($arg_cat) {
+      rewrite ^ /blog/ redirect;
+    }
+
+    try_files $uri @rewrite;
+  }
+
   location ~ \..*/.*\.php {
-     return 403;
+    return 403;
   }
 
   location ~* ^(?:.+\.(?:htaccess|make|txt|log|engine|inc|info|install|module|profile|po|sh|.*sql|theme|tpl(?:\.php)?|xtmpl)|code-style\.pl|/Entries.*|/Repository|/Root|/Tag|/Template)$ {
@@ -32,12 +52,12 @@ server {
 
   # pass the PHP scripts to FastCGI server listening on the php-fpm socket
   location ~ \.php$ {
-     fastcgi_index index.php;
-     try_files $uri =404;
-     fastcgi_split_path_info ^(.+\.php)(/.+)$;
-     fastcgi_pass 127.0.0.1:9000;
-     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-     include fastcgi_params;
+    fastcgi_index index.php;
+    try_files $uri =404;
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+    fastcgi_pass 127.0.0.1:9000;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
   }
 
   location @rewrite {
@@ -45,11 +65,6 @@ server {
   }
 
   location ~ ^/sites/.*/files/styles/ {
-    try_files $uri @rewrite;
-  }
-
-  location / {
-    # This is cool because no php is touched for static content
     try_files $uri @rewrite;
   }
 
@@ -72,10 +87,5 @@ server {
   location ~* \.(txt|log)$ {
     deny all;
   }
-
-
-  #location ~ /\.ht {
-  # deny all;
-  #}
 
 }
