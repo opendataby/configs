@@ -1,4 +1,15 @@
 server {
+  server_name odata.by;
+  return 301 http://www.opendata.by$request_uri;
+}
+
+server {
+  listen 80;
+  server_name opendata.by;
+  return 301 $scheme://www.opendata.by$request_uri;
+}
+
+server {
   listen 80;
 
   root /var/www/odata/docroot;
@@ -15,15 +26,15 @@ server {
     }
 
     if ($arg_page_id) {
-      rewrite ^ /blog/ redirect;
+      rewrite ^ /blog/ permanent;
     }
 
     if ($arg_paged) {
-      rewrite ^ /blog/ redirect;
+      rewrite ^ /blog/ permanent;
     }
 
     if ($arg_cat) {
-      rewrite ^ /blog/ redirect;
+      rewrite ^ /blog/ permanent;
     }
 
     try_files $uri @rewrite;
@@ -37,7 +48,7 @@ server {
     return 404;
   }
 
-  server_name odata.by www.odata.by;
+  server_name www.opendata.by;
 
   add_header 'Access-Control-Allow-Origin' '*';
 
@@ -89,3 +100,4 @@ server {
   }
 
 }
+
