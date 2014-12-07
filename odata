@@ -5,16 +5,15 @@ server {
   return 301 http://www.opendata.by$request_uri;
 }
 
-#server {
-#  listen 80;
-#  server_name opendata.by;
-#  return 301 $scheme://www.opendata.by$request_uri;
-#}
+server {
+  server_name opendata.by;
+  return 301 $scheme://www.opendata.by$request_uri;
+}
 
 server {
   listen 80;
 
-  server_name opendata.by www.opendata.by;
+  server_name www.opendata.by;
 
   add_header 'Access-Control-Allow-Origin' '*';
 
