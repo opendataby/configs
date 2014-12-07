@@ -1,23 +1,50 @@
+fastcgi_cache_path /var/www/cache levels=1:2 keys_zone=cache:8M max_size=1G;
+
 server {
   server_name odata.by;
   return 301 http://www.opendata.by$request_uri;
 }
 
-server {
-  listen 80;
-  server_name opendata.by;
-  return 301 $scheme://www.opendata.by$request_uri;
-}
+#server {
+#  listen 80;
+#  server_name opendata.by;
+#  return 301 $scheme://www.opendata.by$request_uri;
+#}
 
 server {
   listen 80;
+
+  server_name opendata.by www.opendata.by;
+
+  add_header 'Access-Control-Allow-Origin' '*';
 
   root /var/www/odata/docroot;
   index index.php;
 
+  sendfile       on;
+  tcp_nopush     on;
+
+  keepalive_timeout  65;
+  keepalive_requests 1024;
+
+  reset_timedout_connection on;
+
+  gzip on;
+  gzip_min_length 16384;
+  gzip_proxied expired no-cache no-store private auth;
+  gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml;
   gzip_static on;
 
   error_log /var/www/log/odata_error.log;
+
+  location /blog {
+    index index.php;
+    try_files $uri $uri/ /blog/index.php?$args;
+
+    if (!-e $request_filename) {
+      rewrite ^(.+)$ /index.php?q=$1 last;
+    }
+  }
 
   location / {
 
@@ -48,19 +75,6 @@ server {
     return 404;
   }
 
-  server_name www.opendata.by;
-
-  add_header 'Access-Control-Allow-Origin' '*';
-
-  location /blog/ {
-    index index.php;
-    try_files $uri $uri/ /blog/index.php?$args;
-
-    if (!-e $request_filename) {
-      rewrite ^(.+)$ /index.php?q=$1 last;
-    }
-  }
-
   # pass the PHP scripts to FastCGI server listening on the php-fpm socket
   location ~ \.php$ {
     fastcgi_index index.php;
@@ -69,6 +83,23 @@ server {
     fastcgi_pass 127.0.0.1:9000;
     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     include fastcgi_params;
+  }
+
+  location /api/ {
+    fastcgi_cache cache;
+    fastcgi_cache_valid any 30m;
+    fastcgi_cache_key $scheme$proxy_host$uri$is_args$args;
+
+    fastcgi_ignore_headers Set-Cookie;
+    fastcgi_ignore_headers Cache-Control;
+    fastcgi_ignore_headers Expires;
+    fastcgi_ignore_headers X-Accel-Expires;
+
+    expires 30m;
+    add_header Pragma public;
+    add_header Cache-Control "public, must-revalidate, proxy-revalidate";
+
+    try_files $uri @rewrite;
   }
 
   location @rewrite {
