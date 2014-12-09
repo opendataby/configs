@@ -6,19 +6,30 @@ server {
 }
 
 server {
-  server_name opendata.by;
-  return 301 $scheme://www.opendata.by$request_uri;
+  server_name www.opendata.by;
+  return 301 $scheme://opendata.by$request_uri;
+  add_header 'Access-Control-Allow-Origin' '*';
 }
 
 server {
   listen 80;
 
-  server_name www.opendata.by;
+  server_name opendata.by;
+  # return 301 $scheme://www.opendata.by$request_uri;
 
   add_header 'Access-Control-Allow-Origin' '*';
 
   root /var/www/odata/docroot;
   index index.php;
+
+  location /blog {
+    index index.php;
+    try_files $uri $uri/ /blog/index.php?$args;
+
+    if (!-e $request_filename) {
+      rewrite ^(.+)$ /index.php?q=$1 last;
+    }
+  }
 
   sendfile       on;
   tcp_nopush     on;
@@ -35,15 +46,6 @@ server {
   gzip_static on;
 
   error_log /var/www/log/odata_error.log;
-
-  location /blog {
-    index index.php;
-    try_files $uri $uri/ /blog/index.php?$args;
-
-    if (!-e $request_filename) {
-      rewrite ^(.+)$ /index.php?q=$1 last;
-    }
-  }
 
   location / {
 
